@@ -2,10 +2,11 @@
 # see: https://firebase.google.com/docs/studio/customize-workspace
 {pkgs}: {
   # Which nixpkgs channel to use.
-  channel = "stable-24.11"; # or "unstable"
+  channel = "stable-25.05"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
     pkgs.nodejs_20
+    pkgs.pnpm
     pkgs.zulu
   ];
   # Sets environment variables in the workspace
@@ -14,13 +15,15 @@
   # a firebase.json file is written into the user's directory
   services.firebase.emulators = {
     detect = true;
-    projectId = "demo-app";
+    projectId = "seo-rush";
     services = ["auth" "firestore"];
   };
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
-      # "vscodevim.vim"
+      "EditorConfig.EditorConfig"
+      "esbenp.prettier-vscode"
+      "bradlc.vscode-tailwindcss"
     ];
     workspace = {
       onCreate = {

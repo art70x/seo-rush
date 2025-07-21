@@ -13,7 +13,7 @@
 - Primary color: HSL(210, 70%, 50%) which converts to RGB hex value #3399FF for a professional and trustworthy feel.
 - Background color: Desaturated version of the primary color: HSL(210, 20%, 95%) which converts to RGB hex value #F0F8FF, maintaining consistency while providing a subtle backdrop.
 - Accent color: HSL(180, 70%, 40%) which converts to RGB hex value #33CCCC offering a contrasting, but analogous color for highlights and interactive elements.
-- Body and headline font: 'Inter' (sans-serif) for a modern and readable experience. Note: currently only Google Fonts are supported.
+- Body and headline font: 'Roboto' (sans-serif) and 'Lexend' (sans-serif) for a modern and readable experience. Note: currently only Google Fonts are supported.
 - Use a set of sleek, modern icons that clearly represent each SEO metric.
 - Employ a clean and spacious layout with clear sectioning for easy navigation and data interpretation.
 - Implement subtle animations on data loading and transitions to enhance user experience without distraction.

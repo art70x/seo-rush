@@ -1,4 +1,4 @@
-'use server';
+'use server'
 
 /**
  * @fileOverview Provides AI-powered summaries of SEO analysis for a given URL.
@@ -8,8 +8,8 @@
  * - SummarizeSeoInsightsOutput - The return type for the summarizeSeoInsights function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit'
+import { z } from 'genkit'
 
 const SummarizeSeoInsightsInputSchema = z.object({
   url: z.string().url().describe('The URL to analyze for SEO insights.'),
@@ -17,22 +17,28 @@ const SummarizeSeoInsightsInputSchema = z.object({
   title: z.string().describe('The title of the website.'),
   keywords: z.string().describe('The keywords associated with the website.'),
   content: z.string().describe('The text content of the website.'),
-});
-export type SummarizeSeoInsightsInput = z.infer<typeof SummarizeSeoInsightsInputSchema>;
+})
+export type SummarizeSeoInsightsInput = z.infer<typeof SummarizeSeoInsightsInputSchema>
 
 const SummarizeSeoInsightsOutputSchema = z.object({
-  summary: z.string().describe('A concise summary of the SEO analysis, highlighting key areas for improvement and opportunities.'),
-});
-export type SummarizeSeoInsightsOutput = z.infer<typeof SummarizeSeoInsightsOutputSchema>;
+  summary: z
+    .string()
+    .describe(
+      'A concise summary of the SEO analysis, highlighting key areas for improvement and opportunities.',
+    ),
+})
+export type SummarizeSeoInsightsOutput = z.infer<typeof SummarizeSeoInsightsOutputSchema>
 
-export async function summarizeSeoInsights(input: SummarizeSeoInsightsInput): Promise<SummarizeSeoInsightsOutput> {
-  return summarizeSeoInsightsFlow(input);
+export async function summarizeSeoInsights(
+  input: SummarizeSeoInsightsInput,
+): Promise<SummarizeSeoInsightsOutput> {
+  return summarizeSeoInsightsFlow(input)
 }
 
 const summarizeSeoInsightsPrompt = ai.definePrompt({
   name: 'summarizeSeoInsightsPrompt',
-  input: {schema: SummarizeSeoInsightsInputSchema},
-  output: {schema: SummarizeSeoInsightsOutputSchema},
+  input: { schema: SummarizeSeoInsightsInputSchema },
+  output: { schema: SummarizeSeoInsightsOutputSchema },
   prompt: `You are an SEO expert providing a summary of a website's SEO performance.
 
   Based on the following information, provide a concise summary of the SEO analysis, highlighting key areas for improvement and opportunities.
@@ -43,7 +49,7 @@ const summarizeSeoInsightsPrompt = ai.definePrompt({
   Keywords: {{{keywords}}}
   Content: {{{content}}}
   `,
-});
+})
 
 const summarizeSeoInsightsFlow = ai.defineFlow(
   {
@@ -51,8 +57,8 @@ const summarizeSeoInsightsFlow = ai.defineFlow(
     inputSchema: SummarizeSeoInsightsInputSchema,
     outputSchema: SummarizeSeoInsightsOutputSchema,
   },
-  async input => {
-    const {output} = await summarizeSeoInsightsPrompt(input);
-    return output!;
-  }
-);
+  async (input) => {
+    const { output } = await summarizeSeoInsightsPrompt(input)
+    return output!
+  },
+)

@@ -1,4 +1,4 @@
-import { config } from 'dotenv';
-config();
+import { config } from 'dotenv'
+config()
 
-import '@/ai/flows/summarize-seo-insights.ts';
+import '@/ai/flows/summarize-seo-insights.ts'
