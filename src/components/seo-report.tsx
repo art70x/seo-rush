@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bot, Check, Clipboard, Download, FileText, ListTree, Tags, Link as LinkIcon, Share2, FileJson, FileCode, FileType } from 'lucide-react';
+import { Bot, Check, Clipboard, Download, FileText, Tags, Link as LinkIcon, Share2, FileJson, FileCode, FileType, ExternalLink } from 'lucide-react';
 import type { AnalysisResult } from '@/app/actions';
 import { SeoCard } from '@/components/seo-card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 interface SeoReportProps {
@@ -37,15 +38,17 @@ export function SeoReport({ data }: SeoReportProps) {
     report += `Title: ${data.title || 'Not found'}\n`;
     report += `Meta Description: ${data.metaDescription || 'Not found'}\n`;
     report += `Keywords: ${data.keywords || 'Not found'}\n\n`;
-    report += `--- Headings ---\n`;
-    if (data.headings.length > 0) {
-      data.headings.forEach(h => {
-        report += `H${h.level}: ${h.text}\n`;
-      });
-    } else {
-      report += 'No headings found.\n'
-    }
-    report += `\n--- OpenGraph Data ---\n`;
+    report += `--- Links ---\n`;
+    report += `Internal Links: ${data.links.internal.length}\n`;
+    data.links.internal.forEach(l => {
+      report += `- ${l.text} (${l.href})\n`;
+    });
+    report += `\nExternal Links: ${data.links.external.length}\n`;
+     data.links.external.forEach(l => {
+      report += `- ${l.text} (${l.href})\n`;
+    });
+
+    report += `\n\n--- OpenGraph Data ---\n`;
     if(Object.keys(data.openGraphData).length > 0) {
         for (const [key, value] of Object.entries(data.openGraphData)) {
             report += `og:${key}: ${value}\n`;
@@ -63,14 +66,22 @@ export function SeoReport({ data }: SeoReportProps) {
     report += `**Title**: ${data.title || 'Not found'}\n`;
     report += `**Meta Description**: ${data.metaDescription || 'Not found'}\n`;
     report += `**Keywords**: ${data.keywords ? `\`${data.keywords}\`` : 'Not found'}\n\n`;
-    report += `## Headings\n`;
-    if (data.headings.length > 0) {
-      data.headings.forEach(h => {
-        report += `${'#'.repeat(h.level + 1)} ${h.text}\n`;
-      });
+    
+    report += `## Link Analysis\n`;
+    report += `### Internal Links (${data.links.internal.length})\n`;
+    if (data.links.internal.length > 0) {
+        data.links.internal.forEach(l => report += `- [${l.text}](${l.href})\n`);
     } else {
-      report += 'No headings found.\n'
+        report += `No internal links found.\n`;
     }
+    
+    report += `\n### External Links (${data.links.external.length})\n`;
+    if (data.links.external.length > 0) {
+        data.links.external.forEach(l => report += `- [${l.text}](${l.href})\n`);
+    } else {
+        report += `No external links found.\n`;
+    }
+    
     report += `\n## OpenGraph Data\n`;
      if(Object.keys(data.openGraphData).length > 0) {
         report += '| Property | Value |\n| --- | --- |\n';
@@ -109,7 +120,6 @@ export function SeoReport({ data }: SeoReportProps) {
   const handleDownload = (format: 'txt' | 'json' | 'md' | 'html') => {
     let content = '';
     let mimeType = 'text/plain';
-    let reportData;
 
     switch (format) {
         case 'json':
@@ -147,6 +157,20 @@ export function SeoReport({ data }: SeoReportProps) {
   if (!isMounted) {
     return null;
   }
+
+  const LinkList = ({ links }: { links: { text: string; href: string }[] }) => (
+    <ul className="space-y-2">
+      {links.map((link, index) => (
+        <li key={index} className="flex items-start gap-3">
+          <ExternalLink className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
+          <a href={link.href} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">
+            {link.href}
+            <span className="block text-xs text-muted-foreground">{link.text || "No anchor text"}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <section className="mt-8 w-full max-w-5xl animate-fade-in space-y-6">
@@ -193,7 +217,7 @@ export function SeoReport({ data }: SeoReportProps) {
 
       <div className="space-y-4">
         <SeoCard icon={Bot} title="AI-Powered Summary">
-          <p className="text-base text-foreground/90">{data.aiSummary}</p>
+          <p className="text-base text-foreground/90 leading-relaxed">{data.aiSummary}</p>
         </SeoCard>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -217,22 +241,31 @@ export function SeoReport({ data }: SeoReportProps) {
              <OpenGraphPreview data={data.openGraphData} siteUrl={data.url} />
           </SeoCard>
 
-          <SeoCard icon={ListTree} title="Headings Structure" className="lg:col-span-3">
-            {data.headings.length > 0 ? (
-              <ul className="space-y-2">
-                {data.headings.map((heading, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <Badge variant="outline" className={`w-10 justify-center font-bold ${heading.level === 1 ? 'text-primary border-primary' : ''}`}>
-                      H{heading.level}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">{heading.text}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">No headings (H1-H6) found.</p>
-            )}
+          <SeoCard icon={LinkIcon} title="Link Analysis" className="lg:col-span-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="font-semibold mb-3">Internal Links ({data.links.internal.length})</h3>
+                    {data.links.internal.length > 0 ? (
+                        <ScrollArea className="h-64 pr-4">
+                            <LinkList links={data.links.internal} />
+                        </ScrollArea>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No internal links found.</p>
+                    )}
+                </div>
+                <div>
+                    <h3 className="font-semibold mb-3">External Links ({data.links.external.length})</h3>
+                     {data.links.external.length > 0 ? (
+                        <ScrollArea className="h-64 pr-4">
+                            <LinkList links={data.links.external} />
+                        </ScrollArea>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No external links found.</p>
+                    )}
+                </div>
+            </div>
           </SeoCard>
+
         </div>
       </div>
     </section>

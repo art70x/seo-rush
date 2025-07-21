@@ -13,7 +13,10 @@ export interface AnalysisResult {
   title: string | null;
   metaDescription: string | null;
   keywords: string | null;
-  headings: { level: number; text: string }[];
+  links: {
+    internal: { text: string; href: string }[];
+    external: { text: string; href: string }[];
+  };
   contentSample: string;
   aiSummary: string;
   openGraphData: Record<string, string>;
@@ -45,17 +48,33 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
       throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
     }
     const html = await response.text();
+    const pageUrl = new URL(url);
 
     const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
     const descriptionMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
     const keywordsMatch = html.match(/<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']*)["']/i);
     
-    const headings: { level: number; text: string }[] = [];
-    const headingRegex = /<h([1-6])[^>]*>([^<]*)<\/h\1>/gi;
-    let headingMatch;
-    while ((headingMatch = headingRegex.exec(html)) !== null) {
-        headings.push({ level: parseInt(headingMatch[1]), text: headingMatch[2].trim() });
+    const links: AnalysisResult['links'] = { internal: [], external: [] };
+    const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi;
+    let linkMatch;
+    while ((linkMatch = linkRegex.exec(html)) !== null) {
+        const href = linkMatch[1];
+        const text = stripTags(linkMatch[2]).trim();
+
+        if (!href || href.startsWith('javascript:') || href.startsWith('mailto:') || text.length === 0) continue;
+
+        try {
+            const absoluteUrl = new URL(href, url);
+            if (absoluteUrl.hostname === pageUrl.hostname) {
+                links.internal.push({ text, href });
+            } else {
+                links.external.push({ text, href });
+            }
+        } catch (e) {
+            // Ignore invalid URLs
+        }
     }
+
 
     const openGraphData: Record<string, string> = {};
     const ogRegex = /<meta[^>]*property=["']og:([^"']*)["'][^>]*content=["']([^"']*)["']/gi;
@@ -81,7 +100,7 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
       title: titleMatch ? titleMatch[1].trim() : null,
       metaDescription: descriptionMatch ? descriptionMatch[1].trim() : null,
       keywords: keywordsMatch ? keywordsMatch[1].trim() : null,
-      headings,
+      links,
       contentSample: bodyText.substring(0, 500),
       aiSummary: summary,
       openGraphData,
