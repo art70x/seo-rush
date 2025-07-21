@@ -16,6 +16,7 @@ export interface AnalysisResult {
   headings: { level: number; text: string }[];
   contentSample: string;
   aiSummary: string;
+  openGraphData: Record<string, string>;
 }
 
 // A simple regex to strip HTML tags. Not perfect, but works for basic cases.
@@ -56,6 +57,13 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
         headings.push({ level: parseInt(headingMatch[1]), text: headingMatch[2].trim() });
     }
 
+    const openGraphData: Record<string, string> = {};
+    const ogRegex = /<meta[^>]*property=["']og:([^"']*)["'][^>]*content=["']([^"']*)["']/gi;
+    let ogMatch;
+    while ((ogMatch = ogRegex.exec(html)) !== null) {
+        openGraphData[ogMatch[1]] = ogMatch[2];
+    }
+
     const bodyText = stripTags(getBodyContent(html)).replace(/\s\s+/g, ' ').trim();
     
     const analysisInput = {
@@ -76,6 +84,7 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
       headings,
       contentSample: bodyText.substring(0, 500),
       aiSummary: summary,
+      openGraphData,
     };
   } catch (error) {
     console.error('Analysis failed:', error);

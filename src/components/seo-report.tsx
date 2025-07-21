@@ -2,12 +2,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bot, Check, Clipboard, Download, FileText, ListTree, Tags, Link as LinkIcon } from 'lucide-react';
+import { Bot, Check, Clipboard, Download, FileText, ListTree, Tags, Link as LinkIcon, Share2, FileJson, FileCode, FileType } from 'lucide-react';
 import type { AnalysisResult } from '@/app/actions';
 import { SeoCard } from '@/components/seo-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { OpenGraphPreview } from '@/components/open-graph-preview';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 interface SeoReportProps {
   data: AnalysisResult;
@@ -21,10 +29,6 @@ export function SeoReport({ data }: SeoReportProps) {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  if (!isMounted) {
-    return null;
-  }
 
   const generateReportText = () => {
     let report = `SEO Analysis Report for: ${data.url}\n\n`;
@@ -41,8 +45,55 @@ export function SeoReport({ data }: SeoReportProps) {
     } else {
       report += 'No headings found.\n'
     }
+    report += `\n--- OpenGraph Data ---\n`;
+    if(Object.keys(data.openGraphData).length > 0) {
+        for (const [key, value] of Object.entries(data.openGraphData)) {
+            report += `og:${key}: ${value}\n`;
+        }
+    } else {
+        report += "No OpenGraph data found.\n"
+    }
     return report;
   };
+
+  const generateReportMarkdown = () => {
+    let report = `# SEO Analysis Report for: ${data.url}\n\n`;
+    report += `## AI Summary\n${data.aiSummary}\n\n`;
+    report += `## Details\n`;
+    report += `**Title**: ${data.title || 'Not found'}\n`;
+    report += `**Meta Description**: ${data.metaDescription || 'Not found'}\n`;
+    report += `**Keywords**: ${data.keywords ? `\`${data.keywords}\`` : 'Not found'}\n\n`;
+    report += `## Headings\n`;
+    if (data.headings.length > 0) {
+      data.headings.forEach(h => {
+        report += `${'#'.repeat(h.level + 1)} ${h.text}\n`;
+      });
+    } else {
+      report += 'No headings found.\n'
+    }
+    report += `\n## OpenGraph Data\n`;
+     if(Object.keys(data.openGraphData).length > 0) {
+        report += '| Property | Value |\n| --- | --- |\n';
+        for (const [key, value] of Object.entries(data.openGraphData)) {
+            report += `| \`og:${key}\` | ${value} |\n`;
+        }
+    } else {
+        report += "No OpenGraph data found.\n"
+    }
+    return report;
+  };
+
+  const generateReportHtml = () => {
+    const md = generateReportMarkdown()
+        .replace(/# (.*)/g, '<h1>$1</h1>')
+        .replace(/## (.*)/g, '<h2>$1</h2>')
+        .replace(/### (.*)/g, '<h3>$1</h3>')
+        .replace(/#### (.*)/g, '<h4>$1</h4>')
+        .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.*)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+    return `<!DOCTYPE html><html><head><title>SEO Report</title><style>body{font-family:sans-serif;}</style></head><body>${md}</body></html>`;
+  }
 
   const handleCopyToClipboard = () => {
     const reportText = generateReportText();
@@ -55,19 +106,47 @@ export function SeoReport({ data }: SeoReportProps) {
     });
   };
   
-  const handleDownloadReport = () => {
-    const reportText = generateReportText();
-    const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+  const handleDownload = (format: 'txt' | 'json' | 'md' | 'html') => {
+    let content = '';
+    let mimeType = 'text/plain';
+    let reportData;
+
+    switch (format) {
+        case 'json':
+            content = JSON.stringify(data, null, 2);
+            mimeType = 'application/json';
+            break;
+        case 'md':
+            content = generateReportMarkdown();
+            mimeType = 'text/markdown';
+            break;
+        case 'html':
+            content = generateReportHtml();
+            mimeType = 'text/html';
+            break;
+        case 'txt':
+        default:
+            content = generateReportText();
+            mimeType = 'text/plain';
+            break;
+    }
+    
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `seo-report-${new URL(data.url).hostname}.txt`;
+    a.download = `seo-report-${new URL(data.url).hostname}.${format}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast({ title: 'Report download started!' });
+    toast({ title: `Report download as ${format.toUpperCase()} started!` });
   };
+
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <section className="mt-8 w-full max-w-5xl animate-fade-in space-y-6">
@@ -83,10 +162,32 @@ export function SeoReport({ data }: SeoReportProps) {
             {isCopied ? <Check className="mr-2 h-4 w-4" /> : <Clipboard className="mr-2 h-4 w-4" />}
             {isCopied ? 'Copied' : 'Copy'}
           </Button>
-          <Button onClick={handleDownloadReport}>
-            <Download className="mr-2 h-4 w-4" />
-            Download
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleDownload('txt')}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Text (.txt)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownload('md')}>
+                    <FileType className="mr-2 h-4 w-4" />
+                    <span>Markdown (.md)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownload('json')}>
+                    <FileJson className="mr-2 h-4 w-4" />
+                    <span>JSON (.json)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownload('html')}>
+                    <FileCode className="mr-2 h-4 w-4" />
+                    <span>HTML (.html)</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -110,6 +211,10 @@ export function SeoReport({ data }: SeoReportProps) {
             ) : (
               <p className="text-sm text-muted-foreground">No keywords meta tag found.</p>
             )}
+          </SeoCard>
+
+          <SeoCard icon={Share2} title="OpenGraph Preview" className="lg:col-span-3">
+             <OpenGraphPreview data={data.openGraphData} siteUrl={data.url} />
           </SeoCard>
 
           <SeoCard icon={ListTree} title="Headings Structure" className="lg:col-span-3">
