@@ -40,7 +40,7 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
   const { url } = validation.data;
 
   try {
-    const response = await fetch(url, { headers: { 'User-Agent': 'SEO-Pulse-Bot/1.0' } });
+    const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' } });
     if (!response.ok) {
       throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
     }
