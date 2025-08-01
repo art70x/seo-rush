@@ -85,7 +85,7 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
           links.external.push({ text, href })
         }
       } catch (e) {
-        // Ignore invalid URLs
+        console.log(e)
       }
     }
 

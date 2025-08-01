@@ -19,7 +19,7 @@ import type { AnalysisResult } from '@/app/actions'
 import { SeoCard } from '@/components/seo-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { OpenGraphPreview } from '@/components/open-graph-preview'
 import {
   DropdownMenu,
@@ -34,7 +34,6 @@ interface SeoReportProps {
 }
 
 export function SeoReport({ data }: SeoReportProps) {
-  const { toast } = useToast()
   const [isCopied, setIsCopied] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
@@ -123,13 +122,11 @@ export function SeoReport({ data }: SeoReportProps) {
       .writeText(reportText)
       .then(() => {
         setIsCopied(true)
-        toast({ title: 'Report copied to clipboard!' })
+        toast('Report copied to clipboard!')
         setTimeout(() => setIsCopied(false), 2000)
       })
       .catch((err) => {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to copy report',
+        toast('Failed to copy report', {
           description: err.message,
         })
       })
@@ -197,7 +194,7 @@ export function SeoReport({ data }: SeoReportProps) {
   )
 
   return (
-    <section className="mt-8 w-full max-w-5xl animate-fade-in space-y-6">
+    <section className="animate-fade-in mt-8 w-full max-w-5xl space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Analysis Report</h2>
