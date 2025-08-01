@@ -18,7 +18,7 @@ export function OpenGraphPreview({ data, siteUrl }: OpenGraphPreviewProps) {
   return (
     <div className="mx-auto w-full max-w-lg overflow-hidden rounded-lg border bg-card/50">
       {image && (
-        <div className="relative aspect-video bg-muted">
+        <div className="relative aspect-2/1 bg-muted">
           <Image src={image} alt={title || 'OpenGraph Image'} fill className="object-cover" />
         </div>
       )}
