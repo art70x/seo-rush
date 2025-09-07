@@ -36,7 +36,7 @@ export async function analyzeUrl(formData: FormData): Promise<AnalysisResult> {
   })
 
   if (!validation.success) {
-    throw new Error(validation.error.errors[0].message)
+    throw new Error(validation.error.message)
   }
 
   const { url } = validation.data
