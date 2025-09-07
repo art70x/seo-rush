@@ -1,8 +1,8 @@
 {
-    "recommendations": [
-        "EditorConfig.EditorConfig",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss",
-        "dsznajder.es7-react-js-snippets"
-    ]
+  "recommendations": [
+    "EditorConfig.EditorConfig",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "dsznajder.es7-react-js-snippets"
+  ]
 }

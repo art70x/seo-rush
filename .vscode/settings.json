@@ -6,7 +6,7 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "next.config.ts": "*.config.ts,.prettier*,.editorconfig, eslint*",
-    "package.json": "package*, pnpm*",
+    "package.json": "package*, pnpm*"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
