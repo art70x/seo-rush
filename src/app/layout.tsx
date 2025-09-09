@@ -66,6 +66,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`dark ${geistSans.className}`}>
+      <head>
+        <meta name="google-site-verification" content="m_HjXJdV-8zp4hrz0mOvSnOOaMSq1qCiCS2WqLFbvbM" />
+      </head>
       <body>
         {children}
         <Toaster />
